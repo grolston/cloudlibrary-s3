@@ -1,0 +1,97 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  S3 Bucket for CloudFormation Public Assets
+Parameters:
+  pBucketName:
+    Description: Name to used to create the s3 bucket. Make sure to use lower case letters.
+    Type: String
+    Default: "secure-cloud-library"
+
+Resources:
+
+  rS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref pBucketName
+      AccessControl: PublicRead
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: 'Enabled'
+
+  rBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      PolicyDocument:
+        Id: PublicRead
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Effect: Allow
+            Principal: '*'
+            Action:
+            - 's3:GetObject'
+            - 's3:ListBucket'
+            Resource:
+            - !Sub arn:aws:s3:::${pBucketName}/*
+            - !Sub arn:aws:s3:::${pBucketName}
+      Bucket: !Ref rS3Bucket
+
+  rSiteAwsCliUser:
+    Type: AWS::IAM::User
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: F10
+            reason: "Refactoring in later version."
+          - id: F2000
+            reason: "Permissions are unique to bucket and would be group of 1."
+    Properties:
+      UserName: !Sub "${pBucketName}-CliUser"
+      Path: "/"
+      ManagedPolicyArns:
+        - !Ref rSiteAwsCliUserManagedPolicy
+
+  rSiteAwsCliUserManagedPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      Description: !Sub "Policy for ${pBucketName} Cli User"
+      Path: /
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:PutObject
+              - s3:GetObject
+              - s3:DeleteObject
+              - s3:ListObjects
+            Resource:
+              - !Sub '${rS3Bucket.Arn}/'
+              - !Sub '${rS3Bucket.Arn}/*'
+
+  rSiteAwsCliUserAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref rSiteAwsCliUser
+
+  rSiteAwsCliUserSecret:
+    Type: 'AWS::SecretsManager::Secret'
+    Properties:
+      Name: !Sub "${pBucketName}-CliUser"
+      Description: !Sub "API Key for ${pBucketName} Sync User"
+      SecretString: !Sub '{"AccessKeyID":"${rSiteAwsCliUserAccessKey}","AccessKey":"${rSiteAwsCliUserAccessKey.SecretAccessKey}"}'
+
+Outputs:
+
+  S3BucketSecureURL:
+    Value: !Join ['', ['https://', !GetAtt [rS3Bucket, DomainName]]]
+    Description: Name of S3 bucket to hold website content
