@@ -12,6 +12,7 @@ Resources:
 
   rS3Bucket:
     Type: AWS::S3::Bucket
+    #checkov:skip=CKV_AWS_18: Public bucket only contains templates for download and logging not necessary at time
     #checkov:skip=CKV_AWS_20:The bucket is a public static content host
     #checkov:skip=CKV_AWS_55:The bucket is a public static content host
     #checkov:skip=CKV_AWS_56:The bucket is a public static content host
@@ -32,6 +33,11 @@ Resources:
 
   rBucketPolicy:
     Type: AWS::S3::BucketPolicy
+    Metadata:
+      cfn_nag:
+        rules_to_suppress:
+          - id: F16
+            reason: This is a public bucket with read and list options.
     Properties:
       PolicyDocument:
         Id: PublicRead
