@@ -1,7 +1,6 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: >
-  S3 Bucket for CloudFormation Public Assets
+Description: S3 Bucket for CloudFormation Public Assets
 Parameters:
   pBucketName:
     Description: Name to used to create the s3 bucket. Make sure to use lower case letters.
@@ -14,6 +13,7 @@ Resources:
     Type: AWS::S3::Bucket
     #checkov:skip=CKV_AWS_18: Public bucket only contains templates for download and logging not necessary at time
     #checkov:skip=CKV_AWS_20:The bucket is a public static content host
+    #checkov:skip=CKV_AWS_54:The bucket is a public static content host
     #checkov:skip=CKV_AWS_55:The bucket is a public static content host
     #checkov:skip=CKV_AWS_56:The bucket is a public static content host
     Properties:
