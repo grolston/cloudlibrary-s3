@@ -13,6 +13,7 @@ Resources:
     Type: AWS::S3::Bucket
     #checkov:skip=CKV_AWS_18: Public bucket only contains templates for download and logging not necessary at time
     #checkov:skip=CKV_AWS_20:The bucket is a public static content host
+    #checkov:skip=CKV_AWS_53:The bucket is a public static content host
     #checkov:skip=CKV_AWS_54:The bucket is a public static content host
     #checkov:skip=CKV_AWS_55:The bucket is a public static content host
     #checkov:skip=CKV_AWS_56:The bucket is a public static content host
